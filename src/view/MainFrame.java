@@ -43,11 +43,19 @@ public class MainFrame extends JFrame {
     private JButton btnNavFilm;
     private JButton btnNavTransaksi;
 
+    private JMenuItem itemMenuFilm;
+    private JMenuItem itemMenuTransaksi;
+    private JMenuItem itemMenuLogout;
+
+    /** Username petugas yang sedang login; null berarti belum login. */
+    private String userAktif = null;
+
     public MainFrame() {
         this.controller = new BioskopController();
         initFrame();
         initMenuBar();
         initHeaderAndCards();
+        perbaruiAksesNavigasi();
         tampilkanPanel(PANEL_LOGIN);
     }
 
@@ -74,6 +82,11 @@ public class MainFrame extends JFrame {
         itemLogin.addActionListener(e -> tampilkanPanel(PANEL_LOGIN));
         itemFilm.addActionListener(e -> tampilkanPanel(PANEL_FILM));
         itemTransaksi.addActionListener(e -> tampilkanPanel(PANEL_TRANSAKSI));
+        JMenuItem itemLogout = new JMenuItem("Logout");
+        itemLogout.addActionListener(e -> logout());
+        itemMenuFilm = itemFilm;
+        itemMenuTransaksi = itemTransaksi;
+        itemMenuLogout = itemLogout;
         itemKeluar.addActionListener(e -> {
             int konfirmasi = JOptionPane.showConfirmDialog(
                     this,
@@ -91,6 +104,7 @@ public class MainFrame extends JFrame {
         menuNavigasi.add(itemFilm);
         menuNavigasi.add(itemTransaksi);
         menuNavigasi.addSeparator();
+        menuNavigasi.add(itemLogout);
         menuNavigasi.add(itemKeluar);
 
         JMenu menuBantuan = new JMenu("Informasi & Tarif");
@@ -217,9 +231,45 @@ public class MainFrame extends JFrame {
      * Menampilkan panel berdasarkan konstanta namaPanel dan menyegarkan datanya.
      */
     public void tampilkanPanel(String namaPanel) {
+        // Guard: selain halaman login, wajib sudah login terlebih dahulu.
+        if (!PANEL_LOGIN.equals(namaPanel) && !sudahLogin()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Anda harus login terlebih dahulu untuk membuka halaman ini.",
+                    "Akses Ditolak",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            namaPanel = PANEL_LOGIN;
+        }
         sinkronkanSemuaPanel();
         cardLayout.show(mainPanel, namaPanel);
         perbaruiGayaTombolNav(namaPanel);
+    }
+
+    public boolean sudahLogin() {
+        return userAktif != null;
+    }
+
+    /** Dipanggil LoginPanel setelah otentikasi berhasil. */
+    public void setSesiLogin(String username) {
+        this.userAktif = username;
+        perbaruiAksesNavigasi();
+    }
+
+    public void logout() {
+        this.userAktif = null;
+        perbaruiAksesNavigasi();
+        loginPanel.resetSesi();
+        tampilkanPanel(PANEL_LOGIN);
+    }
+
+    private void perbaruiAksesNavigasi() {
+        boolean login = sudahLogin();
+        btnNavFilm.setEnabled(login);
+        btnNavTransaksi.setEnabled(login);
+        itemMenuFilm.setEnabled(login);
+        itemMenuTransaksi.setEnabled(login);
+        itemMenuLogout.setEnabled(login);
     }
 
     private void perbaruiGayaTombolNav(String panelAktif) {

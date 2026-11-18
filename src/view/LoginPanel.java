@@ -43,7 +43,7 @@ public class LoginPanel extends JPanel {
 
     private final MainFrame frame;
     private final BioskopController controller;
-    private final NumberFormat formatRupiah = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("id-ID"));
+    private final NumberFormat formatRupiah = NumberFormat.getCurrencyInstance(Locale.of("id", "ID"));
 
     public LoginPanel(MainFrame frame, BioskopController controller) {
         this.frame = frame;
@@ -102,7 +102,7 @@ public class LoginPanel extends JPanel {
         gbc.gridwidth = 2;
         loginCard.add(lblHeaderLogin, gbc);
 
-        lblStatusSesi = new JLabel("Status Sesi: Siap digunakan (Silakan login atau pilih menu di atas)", SwingConstants.CENTER);
+        lblStatusSesi = new JLabel("Status Sesi: Belum login (Silakan login untuk membuka menu lain)", SwingConstants.CENTER);
         lblStatusSesi.setFont(new Font("SansSerif", Font.ITALIC, 12));
         lblStatusSesi.setForeground(new Color(71, 85, 105));
         gbc.gridy = 1;
@@ -118,7 +118,7 @@ public class LoginPanel extends JPanel {
 
         gbc.gridx = 1;
         gbc.weightx = 1.0;
-        txtUsername = new JTextField("admin", 22);
+        txtUsername = new JTextField("", 22);
         txtUsername.setFont(new Font("SansSerif", Font.PLAIN, 13));
         txtUsername.setPreferredSize(new Dimension(240, 32));
         loginCard.add(txtUsername, gbc);
@@ -132,7 +132,7 @@ public class LoginPanel extends JPanel {
 
         gbc.gridx = 1;
         gbc.weightx = 1.0;
-        txtPassword = new JPasswordField("admin123", 22);
+        txtPassword = new JPasswordField("", 22);
         txtPassword.setFont(new Font("SansSerif", Font.PLAIN, 13));
         txtPassword.setPreferredSize(new Dimension(240, 32));
         loginCard.add(txtPassword, gbc);
@@ -169,17 +169,8 @@ public class LoginPanel extends JPanel {
         btnReset.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnReset.setPreferredSize(new Dimension(110, 36));
 
-        JButton btnPintasanTransaksi = new JButton("Buka Kasir Tiket >>");
-        btnPintasanTransaksi.setFont(new Font("SansSerif", Font.BOLD, 13));
-        btnPintasanTransaksi.setBackground(new Color(5, 150, 105));
-        btnPintasanTransaksi.setForeground(Color.WHITE);
-        btnPintasanTransaksi.setFocusPainted(false);
-        btnPintasanTransaksi.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnPintasanTransaksi.setPreferredSize(new Dimension(170, 36));
-
         btnPanel.add(btnLogin);
         btnPanel.add(btnReset);
-        btnPanel.add(btnPintasanTransaksi);
 
         gbc.gridy = 5;
         loginCard.add(btnPanel, gbc);
@@ -222,12 +213,15 @@ public class LoginPanel extends JPanel {
             txtPassword.setText("");
             txtUsername.requestFocusInWindow();
         });
+    }
 
-        btnPintasanTransaksi.addActionListener(e -> {
-            if (frame != null) {
-                frame.tampilkanPanel(MainFrame.PANEL_TRANSAKSI);
-            }
-        });
+    /** Mengembalikan form & status sesi ke kondisi belum login (dipanggil saat logout). */
+    public void resetSesi() {
+        lblStatusSesi.setText("Status Sesi: Belum login (Silakan login untuk membuka menu lain)");
+        lblStatusSesi.setForeground(new Color(71, 85, 105));
+        txtUsername.setText("");
+        txtPassword.setText("");
+        txtUsername.requestFocusInWindow();
     }
 
     private JPanel buatKartuStatistik(String judul, JLabel lblNilai, Color warnaAksen) {
@@ -262,6 +256,9 @@ public class LoginPanel extends JPanel {
             if (berhasil) {
                 lblStatusSesi.setText("Status Sesi: Login Aktif sebagai '" + username.trim() + "'");
                 lblStatusSesi.setForeground(new Color(5, 150, 105));
+                if (frame != null) {
+                    frame.setSesiLogin(username.trim());
+                }
                 perbaruiStatistik();
                 JOptionPane.showMessageDialog(
                         this,
